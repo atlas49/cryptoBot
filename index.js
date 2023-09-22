@@ -4,7 +4,13 @@ import { getChats, addChat, getTransactions } from './services';
 import { db } from './database';
 const token = '6670210956:AAFxNp8MSf4hoVw2zDayUMopGU2kOYsX7fw';
 
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token);
+
+if (bot.isPolling()) {
+  await bot.stopPolling();
+}
+await bot.startPolling();
+bot.on('polling_error', (err) => console.log(err.data.error.message));
 
 const keyboard = {
   reply_markup: {
@@ -62,3 +68,5 @@ onSnapshot(q, (querySnapshot) => {
     });
   });
 });
+
+await bot.stopPolling();
