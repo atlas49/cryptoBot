@@ -6,25 +6,19 @@ const token = '6670210956:AAFxNp8MSf4hoVw2zDayUMopGU2kOYsX7fw';
 
 const bot = new TelegramBot(token, { polling: true });
 
-bot.on('message', (msg) => {
-  const chatId = msg.chat.id;
+const keyboard = {
+  reply_markup: {
+    inline_keyboard: [[{ text: 'Remove', callback_data: 'remove' }]],
+  },
+};
 
+bot.on('message', (msg) => {
   if (msg.text.startsWith('/start')) {
     addChat(msg.chat.id);
     getTransactions();
   }
-});
 
-bot.on('message', (msg) => {
-  const chatId = msg.chat.id;
-
-  const keyboard = {
-    reply_markup: {
-      inline_keyboard: [[{ text: 'Remove', callback_data: 'remove' }]],
-    },
-  };
-
-  bot.sendMessage(chatId, 'Choose an option:', keyboard);
+  console.log(msg.chat.id, msg.text);
 });
 
 bot.on('callback_query', (query) => {
@@ -35,18 +29,16 @@ bot.on('callback_query', (query) => {
 
   switch (data) {
     case 'remove':
-      getChats();
-      // bot.deleteMessage(chatId, messageId);
+      bot.deleteMessage(chatId, messageId);
       break;
   }
 
-  // Close the callback query after handling
   bot.answerCallbackQuery(query.id);
 });
 
 const q = query(collection(db, 'transactions'));
 
-const unsub = onSnapshot(q, (querySnapshot) => {
+onSnapshot(q, (querySnapshot) => {
   const transactions = [];
   querySnapshot.forEach((doc) => {
     transactions.push(doc.data());
@@ -59,7 +51,8 @@ const unsub = onSnapshot(q, (querySnapshot) => {
           await bot
             .sendMessage(
               chat.id,
-              `wallet: ${transaction.wallet}\nemail: ${transaction.email}\nfrom ${transaction.from.value} ${transaction.from.code}\nto ${transaction.to.value} ${transaction.to.code}`
+              `wallet: ${transaction.wallet}\nemail: ${transaction.email}\nfrom ${transaction.from.value} ${transaction.from.code}\nto ${transaction.to.value} ${transaction.to.code}`,
+              keyboard
             )
             .catch((error) => {
               console.error('Error sending message:', error);
